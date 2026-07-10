@@ -348,7 +348,9 @@ class MonitoringService {
         }
 
         const systemChromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-        const executablePath = fs.existsSync(systemChromePath) ? systemChromePath : undefined;
+        const executablePath = fs.existsSync(systemChromePath)
+          ? systemChromePath
+          : (process.env.PUPPETEER_EXECUTABLE_PATH || undefined);
 
         browser = await puppeteer.launch({
           headless: true,
