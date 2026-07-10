@@ -109,6 +109,20 @@ export function App() {
     setError(undefined);
   };
 
+  const rotateIps = async () => {
+    setError(undefined);
+    try {
+      const response = await api.rotateIPs();
+      setStats(response.stats);
+      setWorkers(response.workers);
+      // Fetch latest logs to show the rotation log immediately
+      const logsResponse = await api.logs();
+      setLogs(logsResponse.logs);
+    } catch (rotateError) {
+      setError(rotateError instanceof Error ? rotateError.message : "Unable to rotate IP addresses.");
+    }
+  };
+
   const formatDuration = (seconds: number): string => {
     if (!seconds) return "Not detected";
     const mins = Math.floor(seconds / 60);
@@ -171,6 +185,7 @@ export function App() {
           onStart={start}
           onStop={stop}
           onReset={reset}
+          onRotateIps={rotateIps}
           onExportCsv={() => exportLogsCsv(logs)}
           onExportPdf={() => exportStatsPdf(stats)}
           onToggleTheme={() => setIsDark((value) => !value)}

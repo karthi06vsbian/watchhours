@@ -253,9 +253,21 @@ class MonitoringService {
     this.videoDurationSec = 0;
     this.instagramCount = 0;
     this.whatsappCount = 0;
-    this.workers = this.createWorkers(MAX_WORKERS, "all");
+    this.workers = this.createWorkers(MAX_WORKERS, this.currentRegion);
     clearLogs();
     return { stats: this.getStats(), workers: this.getWorkers(), logs: [] };
+  }
+
+  rotateIPs(): { stats: MonitorStats; workers: WorkerSnapshot[] } {
+    this.workers = this.createWorkers(MAX_WORKERS, this.currentRegion);
+    insertLog({
+      workerId: 0,
+      url: this.configuredUrl,
+      status: "waiting",
+      message: `System: Rotated all virtual user IP addresses (${this.currentRegion.toUpperCase()})`,
+      createdAt: new Date().toISOString()
+    });
+    return { stats: this.getStats(), workers: this.getWorkers() };
   }
 
   getStats(): MonitorStats {

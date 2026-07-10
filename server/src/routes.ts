@@ -33,6 +33,10 @@ router.post("/reset", (_request, response) => {
   response.json(monitoringService.reset());
 });
 
+router.post("/rotate-ips", (_request, response) => {
+  response.json(monitoringService.rotateIPs());
+});
+
 router.post("/open-browser", (request, response) => {
   const { workerId, url } = request.body;
   if (typeof workerId !== "number" || typeof url !== "string") {

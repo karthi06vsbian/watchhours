@@ -1,4 +1,4 @@
-import { Download, FileDown, Moon, Play, RefreshCcw, Square, Sun } from "lucide-react";
+import { Download, FileDown, Moon, Play, RefreshCcw, Shuffle, Square, Sun } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 
 interface ControlPanelProps {
@@ -16,6 +16,7 @@ interface ControlPanelProps {
   onStart: () => void;
   onStop: () => void;
   onReset: () => void;
+  onRotateIps: () => void;
   onExportCsv: () => void;
   onExportPdf: () => void;
   onToggleTheme: () => void;
@@ -76,9 +77,13 @@ export function ControlPanel(props: ControlPanelProps) {
           <Square className="h-4 w-4" />
           Stop
         </button>
-        <button className="action" onClick={props.onReset} title="Reset monitoring">
+        <button className="action" onClick={props.onReset} title="Reset monitoring stats">
           <RefreshCcw className="h-4 w-4" />
           Reset
+        </button>
+        <button className="action" onClick={props.onRotateIps} title="Regenerate all virtual user IP addresses">
+          <Shuffle className="h-4 w-4" />
+          Change IPs
         </button>
         <button className="action" onClick={props.onExportCsv} title="Export logs to CSV">
           <Download className="h-4 w-4" />

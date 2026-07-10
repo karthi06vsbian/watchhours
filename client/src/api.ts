@@ -29,6 +29,7 @@ export const api = {
     request<StatsResponse & WorkersResponse>("/start", { method: "POST", body: JSON.stringify(payload) }),
   stop: () => request<StatsResponse & WorkersResponse>("/stop", { method: "POST" }),
   reset: () => request<StatsResponse & WorkersResponse & LogsResponse>("/reset", { method: "POST" }),
+  rotateIPs: () => request<StatsResponse & WorkersResponse>("/rotate-ips", { method: "POST" }),
   stats: () => request<StatsResponse>("/stats"),
   logs: () => request<LogsResponse>("/logs?limit=500"),
   workers: () => request<WorkersResponse>("/workers"),
