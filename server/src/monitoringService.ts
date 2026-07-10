@@ -389,6 +389,8 @@ class MonitoringService {
         }
 
         const viewport = getRandomViewport();
+        let currentMouseX = Math.round(viewport.width / 2);
+        let currentMouseY = Math.round(viewport.height / 2);
         const localeInfo = getRandomLocale();
 
         await page.setUserAgent(userAgent);
@@ -474,26 +476,42 @@ class MonitoringService {
               let currentScroll = 0;
               
               while (currentScroll < scrollHeight - viewportHeight) {
-                const amount = Math.min(150 + Math.floor(Math.random() * 100), scrollHeight - viewportHeight - currentScroll);
-                window.scrollBy(0, amount);
-                currentScroll += amount;
-                await delay(800 + Math.floor(Math.random() * 500));
+                const rand = Math.random();
+                if (rand < 0.12 && currentScroll > 100) {
+                  // 12% chance to scroll UP slightly (human adjustment/reread)
+                  const scrollUpAmount = Math.min(30 + Math.floor(Math.random() * 40), currentScroll);
+                  window.scrollBy(0, -scrollUpAmount);
+                  currentScroll -= scrollUpAmount;
+                  await delay(1200 + Math.floor(Math.random() * 1000));
+                } else if (rand < 0.08) {
+                  // 8% chance to pause longer (reading pause)
+                  await delay(2500 + Math.floor(Math.random() * 1500));
+                } else {
+                  // Standard scroll down
+                  const amount = Math.min(100 + Math.floor(Math.random() * 120), scrollHeight - viewportHeight - currentScroll);
+                  window.scrollBy(0, amount);
+                  currentScroll += amount;
+                  await delay(600 + Math.floor(Math.random() * 600));
+                }
               }
             });
           } catch (e) {
             // ignore
           }
 
-          // Perform mouse movements
+          // Perform human-like mouse movements
           try {
             const width = viewport.width;
             const height = viewport.height;
-            for (let i = 0; i < 2; i++) {
-              const x = Math.floor(Math.random() * width);
-              const y = Math.floor(Math.random() * height);
-              await page.mouse.move(x, y, { steps: 10 });
-              await new Promise((resolve) => setTimeout(resolve, 1000 + Math.floor(Math.random() * 1000)));
+            let mPos = { x: currentMouseX, y: currentMouseY };
+            for (let i = 0; i < 3; i++) {
+              const targetX = Math.floor(Math.random() * width);
+              const targetY = Math.floor(Math.random() * height);
+              mPos = await this.moveMouseHumanlike(page, mPos.x, mPos.y, targetX, targetY);
+              await new Promise((resolve) => setTimeout(resolve, 800 + Math.floor(Math.random() * 800)));
             }
+            currentMouseX = mPos.x;
+            currentMouseY = mPos.y;
           } catch (e) {
             // ignore
           }
@@ -549,9 +567,11 @@ class MonitoringService {
 
           // Move cursor once to emulate active interest
           try {
-            const x = Math.floor(Math.random() * viewport.width);
-            const y = Math.floor(Math.random() * viewport.height);
-            await page.mouse.move(x, y, { steps: 10 });
+            const targetX = Math.floor(Math.random() * viewport.width);
+            const targetY = Math.floor(Math.random() * viewport.height);
+            const mPos = await this.moveMouseHumanlike(page, currentMouseX, currentMouseY, targetX, targetY);
+            currentMouseX = mPos.x;
+            currentMouseY = mPos.y;
           } catch (e) {
             // ignore
           }
@@ -788,6 +808,31 @@ class MonitoringService {
       }
     }
     return 0;
+  }
+
+  private async moveMouseHumanlike(
+    page: any,
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number
+  ): Promise<{ x: number; y: number }> {
+    const steps = 12 + Math.floor(Math.random() * 8); // 12-20 steps
+    const controlX = (startX + endX) / 2 + (Math.random() - 0.5) * 150;
+    const controlY = (startY + endY) / 2 + (Math.random() - 0.5) * 150;
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const x = Math.round((1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX);
+      const y = Math.round((1 - t) * (1 - t) * startY + 2 * (1 - t) * t * controlY + t * t * endY);
+      try {
+        await page.mouse.move(x, y);
+      } catch (e) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10 + Math.floor(Math.random() * 15)));
+    }
+    return { x: endX, y: endY };
   }
 
   openExternalBrowser(workerId: number, url: string): void {

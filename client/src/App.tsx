@@ -50,17 +50,25 @@ export function App() {
   const [statusFilter, setStatusFilter] = useState<"all" | WorkerStatus>("all");
   const [error, setError] = useState<string>();
   const [isDark, setIsDark] = useState(true);
+  const [connectionError, setConnectionError] = useState<string>();
 
   const refresh = useCallback(async () => {
-    const [statsResponse, logsResponse, workersResponse] = await Promise.all([
-      api.stats(),
-      api.logs(),
-      api.workers()
-    ]);
-    setStats(statsResponse.stats);
-    setHistory(statsResponse.chartHistory);
-    setLogs(logsResponse.logs);
-    setWorkers(workersResponse.workers);
+    try {
+      const [statsResponse, logsResponse, workersResponse] = await Promise.all([
+        api.stats(),
+        api.logs(),
+        api.workers()
+      ]);
+      setStats(statsResponse.stats);
+      setHistory(statsResponse.chartHistory);
+      setLogs(logsResponse.logs);
+      setWorkers(workersResponse.workers);
+      setConnectionError(undefined);
+    } catch (err) {
+      setConnectionError(
+        err instanceof Error ? err.message : "Failed to connect to the backend server API."
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -138,6 +146,15 @@ export function App() {
             Authorized targets only. No IP rotation, proxy evasion, or rate-limit bypassing.
           </div>
         </header>
+
+        {connectionError && (
+          <div className="mb-4 rounded-lg border border-alertRed/40 bg-alertRed/10 px-4 py-3 text-sm text-red-100">
+            <span className="font-bold text-alertRed">API Connection Error:</span> {connectionError}
+            <div className="mt-1 text-xs text-slate-400">
+              Please check that your backend server is active and the environment variable <code>VITE_API_BASE_URL</code> is pointing to the correct backend endpoint (e.g. <code>https://your-backend.onrender.com</code>).
+            </div>
+          </div>
+        )}
 
         <ControlPanel
           url={url}
